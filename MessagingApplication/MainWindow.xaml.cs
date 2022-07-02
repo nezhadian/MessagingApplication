@@ -31,14 +31,21 @@ namespace MessagingApplication
         {
             msgListener = new MessageListener(0);
             msgListener.OnMessageReceived += MsgListener_OnMessageReceived;
-            msgListener.OnPortChanged += (p) => Dispatcher.Invoke(() => lblCurrentPort.Content = $"Current Port : {p}");
+            msgListener.OnPortChanged += MsgListener_OnPortChanged; ;
 
             lblStatus.Content = "Ready";
         }
 
-        private void MsgListener_OnMessageReceived(MessageData message)
+        private void MsgListener_OnPortChanged(int port)
         {
-            Dispatcher.Invoke((Action)delegate
+            Dispatcher.Invoke(() => {
+                lblCurrentAddress.Content = $"{utils.SelfIPAddress()}:{port}";
+            },System.Windows.Threading.DispatcherPriority.Loaded);
+        }
+
+        private void MsgListener_OnMessageReceived(MessageData message,System.Net.IPEndPoint source)
+        {
+            Dispatcher.Invoke(delegate
             {
                 lstMessages.Items.Add(new ListBoxItem()
                 {
@@ -47,9 +54,16 @@ namespace MessagingApplication
 
                 });
 
-                txtPort.Text = message.OpenedPort + "";
-            },System.Windows.Threading.DispatcherPriority.Render);
+                string sourceAddress = $"{source.Address}:{message.OpenedPort}";
+
+                //if (txtTargetAddress.Text != sourceAddress && 
+                //        MessageBoxResult.Yes == MessageBox.Show("Do You want to set target address to sender address", "Info", MessageBoxButton.YesNo))
+                {
+                    txtTargetAddress.Text = sourceAddress;
+                }
+            }, System.Windows.Threading.DispatcherPriority.Loaded);
         }
+
 
         private void btnSend_Click(object sender, RoutedEventArgs e)
         {
@@ -63,8 +77,7 @@ namespace MessagingApplication
             bool success = true;
             try
             {
-
-                msgSender.SetAddress(txtIpAddress.Text, int.Parse(txtPort.Text));
+                msgSender.TargetAddress = System.Net.IPEndPoint.Parse(txtTargetAddress.Text);
                 msgSender.SendMessage(new MessageData()
                 {
                     OpenedPort = msgListener.Port,
@@ -93,5 +106,18 @@ namespace MessagingApplication
         {
             msgListener.Port = int.Parse(txtServerPort.Text);
         }
+
+        private void lblCurrentAddress_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Clipboard.SetText(lblCurrentAddress.Content.ToString());
+            lblStatus.Content = "Address Copied";
+        }
+
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            Environment.Exit(0);
+        }
+
     }
 }

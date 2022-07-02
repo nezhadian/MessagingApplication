@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:MessagingApplication"
         mc:Ignorable="d"
         Loaded="Window_Loaded"
+        Closed="Window_Closed"
         Title="MainWindow" Height="603" Width="800">
     <Grid>
         <Grid.RowDefinitions>
@@ -27,10 +28,8 @@
 
             <Border  CornerRadius="3" Background="#eee" >
                 <StackPanel Margin="10,5">
-                    <Label Content="IP Address"/>
-                    <TextBox x:Name="txtIpAddress" Text="127.0.0.1"/>
-                    <Label Content="Port"/>
-                    <TextBox x:Name="txtPort" Text="1990"/>
+                    <Label Content="TargetAddress"/>
+                    <TextBox x:Name="txtTargetAddress" Text="127.0.0.1"/>
                     <Label Content="Message Text"/>
                     <TextBox x:Name="txtMessage" AcceptsReturn="True" Height="100"/>
                     <Button Content="Send" Margin="0,10,0,0" Padding="40,10" Click="btnSend_Click"/>
@@ -39,7 +38,12 @@
 
             <Border CornerRadius="3" Background="#eee" Grid.Row="2" Grid.Column="0">
                 <StackPanel Margin="10,3">
-                    <Label Content="Current Port" x:Name="lblCurrentPort"/>
+                    
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="YourAddress"/>
+                        <Label x:Name="lblCurrentAddress" Foreground="#FF0163A4" Cursor="Hand" MouseDown="lblCurrentAddress_MouseDown"/>
+                    </StackPanel>
+                    
                     <TextBox x:Name="txtServerPort" />
                     <Button Content="Change Port" Margin="0,10,0,0" Padding="40,10" Click="btChangePort_Click"/>
 

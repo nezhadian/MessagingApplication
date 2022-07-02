@@ -35,13 +35,6 @@ namespace MessagingApplication
             XmlSerializer serializer = new XmlSerializer(typeof(MessageData));
             
             return (MessageData)serializer.Deserialize(ReadData(socket));
-            
-
-            //string message = Encoding.UTF8.GetString(data);
-            //int splitIndex = message.IndexOf("\n\n\n");
-
-            //OpenedPort = int.Parse(message[0..splitIndex]);
-            //Message = message[(splitIndex + 3)..];
         }
 
         static Stream ReadData(Socket socket)
@@ -98,7 +91,7 @@ namespace MessagingApplication
 
         CancellationTokenSource listenerSource;
 
-        public delegate void MessageEventHandler(MessageData message);
+        public delegate void MessageEventHandler(MessageData message,IPEndPoint source);
         public event MessageEventHandler OnMessageReceived;
 
 
@@ -139,7 +132,7 @@ namespace MessagingApplication
                 try
                 {
                     socket = listener.AcceptSocket();
-                    OnMessageReceived?.Invoke(MessageData.ReadFromSocket(socket));
+                    OnMessageReceived?.Invoke(MessageData.ReadFromSocket(socket),(IPEndPoint)socket.RemoteEndPoint);
                 }
                 catch { }
             }
@@ -184,6 +177,22 @@ namespace MessagingApplication
             TargetAddress = new IPEndPoint(IPAddress.Parse(ip), port);
         }
 
+    }
+
+    class utils
+    {
+        public static string SelfIPAddress()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                    return ip.ToString();
+            }
+
+            return "127.0.0.1";
+        }
     }
 
 }
