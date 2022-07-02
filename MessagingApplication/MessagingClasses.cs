@@ -8,69 +8,48 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Windows;
 using System.Xml.Serialization;
+using System.IO;
 
 namespace MessagingApplication
 {
-
-    class MessageDecoder
-    {
-        public readonly int OpenedPort;
-        public readonly string Message;
-
-        public MessageDecoder(Socket socket)
-        {
-            byte[] data = new byte[socket.ReceiveBufferSize];
-            int count = 0;
-            count = socket.Receive(data);
-
-            string message = Encoding.UTF8.GetString(data, 0, count);
-            //string[] parts = message.Split('\n');
-            int splitIndex = message.IndexOf("\n\n\n");
-
-            OpenedPort = int.Parse(message[0..splitIndex]);
-            Message = message[(splitIndex+3)..];
-        }
-    }
-
-    class MessageBuilder
+    public class MessageData
     {
         public int OpenedPort { get; set; }
         public string Message { get; set; }
 
-        public byte[] ReadBytes()
-        {
-            return Encoding.UTF8.GetBytes($"{OpenedPort}\n\n\n{Message}");
-            
-        }
-    }
-
-    class MessageData
-    {
-        public int OpenedPort { get; set; }
-        public string Message { get; set; }
-
-        public MessageData(Socket socket)
-        {
-            byte[] data = new byte[socket.ReceiveBufferSize];
-            int count = 0;
-            count = socket.Receive(data);
-
-            DecodeXML(data[..count]);
-        }
         public MessageData() { }
 
         public byte[] EncodeXML()
         {
-            return Encoding.UTF8.GetBytes($"{OpenedPort}\n\n\n{Message}");
+            XmlSerializer serializer = new XmlSerializer(typeof(MessageData));
+            MemoryStream stream = new MemoryStream();
+
+            serializer.Serialize(stream, this);
+
+            return stream.ToArray();
+            //return Encoding.UTF8.GetBytes($"{OpenedPort}\n\n\n{Message}");
         }
 
-        public void DecodeXML(byte[] data)
+        public static MessageData ReadFromSocket(Socket socket)
         {
-            string message = Encoding.UTF8.GetString(data);
-            int splitIndex = message.IndexOf("\n\n\n");
+            XmlSerializer serializer = new XmlSerializer(typeof(MessageData));
+            
+            return (MessageData)serializer.Deserialize(ReadData(socket));
+            
 
-            OpenedPort = int.Parse(message[0..splitIndex]);
-            Message = message[(splitIndex + 3)..];
+            //string message = Encoding.UTF8.GetString(data);
+            //int splitIndex = message.IndexOf("\n\n\n");
+
+            //OpenedPort = int.Parse(message[0..splitIndex]);
+            //Message = message[(splitIndex + 3)..];
+        }
+
+        static Stream ReadData(Socket socket)
+        {
+            byte[] data = new byte[socket.ReceiveBufferSize];
+            int count = socket.Receive(data);
+
+            return new MemoryStream(data, 0, count);
         }
     }
 
@@ -160,7 +139,7 @@ namespace MessagingApplication
                 try
                 {
                     socket = listener.AcceptSocket();
-                    OnMessageReceived?.Invoke(new MessageData(socket));
+                    OnMessageReceived?.Invoke(MessageData.ReadFromSocket(socket));
                 }
                 catch { }
             }
