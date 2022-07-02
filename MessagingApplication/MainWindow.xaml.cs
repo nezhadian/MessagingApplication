@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Net;
 
 namespace MessagingApplication
 {
@@ -33,7 +34,7 @@ namespace MessagingApplication
             msgListener.OnMessageReceived += MsgListener_OnMessageReceived;
             msgListener.OnPortChanged += MsgListener_OnPortChanged; ;
 
-            lblStatus.Content = "Ready";
+            ChangeStatus("Ready");
         }
 
         private void MsgListener_OnPortChanged(int port)
@@ -43,7 +44,7 @@ namespace MessagingApplication
             },System.Windows.Threading.DispatcherPriority.Loaded);
         }
 
-        private void MsgListener_OnMessageReceived(MessageData message,System.Net.IPEndPoint source)
+        private void MsgListener_OnMessageReceived(MessageData message, IPEndPoint source)
         {
             Dispatcher.Invoke(delegate
             {
@@ -67,50 +68,77 @@ namespace MessagingApplication
 
         private void btnSend_Click(object sender, RoutedEventArgs e)
         {
-
-            if (string.IsNullOrEmpty(txtMessage.Text))
+            if(IPEndPoint.TryParse(txtTargetAddress.Text,out IPEndPoint target))
+                msgSender.TargetAddress = target;
+            else
             {
-                txtMessage.Focus();
+                txtTargetAddress.Focus();
+                ChangeStatus("Incorrect Address");
                 return;
             }
 
-            bool success = true;
             try
             {
-                msgSender.TargetAddress = System.Net.IPEndPoint.Parse(txtTargetAddress.Text);
                 msgSender.SendMessage(new MessageData()
                 {
                     OpenedPort = msgListener.Port,
                     Message = txtMessage.Text
                 });
 
-            }catch(Exception ex)
+                lstMessages.Items.Add(new ListBoxItem()
+                {
+                    Content = txtMessage.Text,
+                    HorizontalContentAlignment = HorizontalAlignment.Right
+
+                });
+
+                txtMessage.Text = "";
+                ChangeStatus("Message Sent");
+
+            }
+            catch (System.Net.Sockets.SocketException ex)
             {
-                MessageBox.Show(ex.Message,"Error",MessageBoxButton.OK);
-                success = false;
+                MessageBox.Show(ex.Message);
+                ChangeStatus($"Message Error: {ex.Message}");
+            }
+            finally
+            {
+                txtMessage.Focus();
             }
 
-
-            lstMessages.Items.Add(new ListBoxItem()
-            {
-                Content = txtMessage.Text,
-                HorizontalContentAlignment = HorizontalAlignment.Right,
-                Foreground = new SolidColorBrush(success ? Colors.Black : Colors.Red)
-
-            });
-            txtMessage.Text = "";
-            txtMessage.Focus();
+            
         }
 
         private void btChangePort_Click(object sender, RoutedEventArgs e)
         {
-            msgListener.Port = int.Parse(txtServerPort.Text);
+            if(int.TryParse(txtServerPort.Text,out int port))
+            {
+                if(port >= 0 && port <= 0xffff)
+                {
+                    msgListener.Port = int.Parse(txtServerPort.Text);
+                    ChangeStatus("Port Changed");
+                }
+                else
+                {
+                    ChangeStatus($"Port Must Between 0 to {0xffff}");
+                }
+            }
+            else
+            {
+                ChangeStatus("Incorrect Port");
+            }
+            
+        }
+
+        private void ChangeStatus(string status)
+        {
+            lblStatus.Content = status;
         }
 
         private void lblCurrentAddress_MouseDown(object sender, MouseButtonEventArgs e)
         {
             Clipboard.SetText(lblCurrentAddress.Content.ToString());
-            lblStatus.Content = "Address Copied";
+            ChangeStatus("Address Copied");
         }
 
 
@@ -119,5 +147,12 @@ namespace MessagingApplication
             Environment.Exit(0);
         }
 
+        private void lstMessages_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (lstMessages.SelectedItem == null)
+                return;
+
+            txtMessage.Text = ((ListBoxItem)lstMessages.SelectedItem).Content.ToString();
+        }
     }
 }
