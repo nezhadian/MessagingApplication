@@ -73,7 +73,7 @@ namespace MessagingApplication
                 
             }
         }
-        private void SetPortWithourRestarting(int port)
+        private void SetPortWithoutRestarting(int port)
         {
             if (CheckPort(port))
             {
@@ -98,7 +98,6 @@ namespace MessagingApplication
         public MessageListener(int port)
         {
             Port = port;
-            RestartListener();
         }
 
         public void RestartListener()
@@ -123,7 +122,7 @@ namespace MessagingApplication
 
             Socket socket;
 
-            SetPortWithourRestarting(((IPEndPoint)listener.LocalEndpoint).Port);
+            SetPortWithoutRestarting(((IPEndPoint)listener.LocalEndpoint).Port);
 
             token.Register(() => listener.Stop());
 
@@ -181,7 +180,7 @@ namespace MessagingApplication
 
     class utils
     {
-        public static string SelfIPAddress()
+        public static string GetSelfIPAddress()
         {
             var host = Dns.GetHostEntry(Dns.GetHostName());
 

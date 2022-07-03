@@ -40,7 +40,7 @@ namespace MessagingApplication
         private void MsgListener_OnPortChanged(int port)
         {
             Dispatcher.Invoke(() => {
-                lblCurrentAddress.Content = $"{utils.SelfIPAddress()}:{port}";
+                lblCurrentAddress.Content = $"{utils.GetSelfIPAddress()}:{port}";
             },System.Windows.Threading.DispatcherPriority.Loaded);
         }
 
