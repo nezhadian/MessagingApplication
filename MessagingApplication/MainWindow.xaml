@@ -1,10 +1,13 @@
-﻿<Window x:Class="MessagingApplication.MainWindow"
+﻿<local:MyStyleWindow x:Class="MessagingApplication.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MessagingApplication"
         mc:Ignorable="d"
+        Style="{StaticResource {x:Type local:MyStyleWindow}}"
+        x:Name="main"
+        TitleBarHeight="30"
         Loaded="Window_Loaded"
         Closed="Window_Closed"
         Title="MainWindow" Height="603" Width="800">
@@ -38,12 +41,12 @@
 
             <Border CornerRadius="3" Background="#eee" Grid.Row="2" Grid.Column="0">
                 <StackPanel Margin="10,3">
-                    
+
                     <StackPanel Orientation="Horizontal">
                         <Label Content="YourAddress"/>
                         <Label x:Name="lblCurrentAddress" Foreground="#FF0163A4" Cursor="Hand" MouseDown="lblCurrentAddress_MouseDown"/>
                     </StackPanel>
-                    
+
                     <TextBox x:Name="txtServerPort" />
                     <Button Content="Change Port" Margin="0,10,0,0" Padding="40,10" Click="btChangePort_Click"/>
 
@@ -51,7 +54,7 @@
             </Border>
 
             <ListBox x:Name="lstMessages" SelectionChanged="lstMessages_SelectionChanged" Grid.Column="2" Grid.RowSpan="3" BorderThickness="0">
-                <!--<local:MessageView Content="Hello" MessageType="FromOthers"/>
+                <local:MessageView Content="Hello" MessageType="FromOthers"/>
                 <local:MessageView Content="Another Hello" MessageType="FromOthers"/>
                 <local:MessageView Content="show case Hello" MessageType="FromOthers"/>
                 <local:MessageView Content="Hi" MessageType="Sended"/>
@@ -60,7 +63,7 @@
                 <local:MessageView Content="How Are You?" MessageType="FromOthers"/>
                 <local:MessageView Content="Another How Are You" MessageType="FromOthers"/>
                 <local:MessageView Content="How Are You How Are You" MessageType="FromOthers"/>
-                <local:MessageView Content="I`m Fine" MessageType="Sended"/>-->
+                <local:MessageView Content="I`m Fine" MessageType="Sended"/>
             </ListBox>
 
         </Grid>
@@ -70,4 +73,15 @@
             <StatusBarItem Content="Wellcome" x:Name="lblStatus"/>
         </StatusBar>
     </Grid>
-</Window>
+
+    <local:MyStyleWindow.TitleBarContent>
+        <TextBlock
+            Text="{Binding Title,ElementName=main}"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            Margin="20,0"
+            FontSize="16"
+            />
+    </local:MyStyleWindow.TitleBarContent>
+    
+</local:MyStyleWindow>
