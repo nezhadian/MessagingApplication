@@ -48,10 +48,10 @@ namespace MessagingApplication
         {
             Dispatcher.Invoke(delegate
             {
-                lstMessages.Items.Add(new ListBoxItem()
+                lstMessages.Items.Add(new MessageView()
                 {
                     Content = message.Message,
-                    HorizontalContentAlignment = HorizontalAlignment.Left
+                    MessageType = MessageView.MessageTypes.FromOthers
 
                 });
 
@@ -85,10 +85,10 @@ namespace MessagingApplication
                     Message = txtMessage.Text
                 });
 
-                lstMessages.Items.Add(new ListBoxItem()
+                lstMessages.Items.Add(new MessageView()
                 {
                     Content = txtMessage.Text,
-                    HorizontalContentAlignment = HorizontalAlignment.Right
+                    MessageType = MessageView.MessageTypes.Sended
 
                 });
 
@@ -130,6 +130,7 @@ namespace MessagingApplication
             
         }
 
+
         private void ChangeStatus(string status)
         {
             lblStatus.Content = status;
@@ -141,7 +142,6 @@ namespace MessagingApplication
             ChangeStatus("Address Copied");
         }
 
-
         private void Window_Closed(object sender, EventArgs e)
         {
             Environment.Exit(0);
@@ -152,7 +152,7 @@ namespace MessagingApplication
             if (lstMessages.SelectedItem == null)
                 return;
 
-            txtMessage.Text = ((ListBoxItem)lstMessages.SelectedItem).Content.ToString();
+            txtMessage.Text = ((MessageView)lstMessages.SelectedItem).Content.ToString();
         }
     }
 }

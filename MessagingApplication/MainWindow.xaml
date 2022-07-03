@@ -50,10 +50,18 @@
                 </StackPanel>
             </Border>
 
-            <Border CornerRadius="3" Background="#eee"  Grid.Column="2" Grid.RowSpan="3">
-                <ListBox Margin="10" x:Name="lstMessages" SelectionChanged="lstMessages_SelectionChanged">
-                </ListBox>
-            </Border>
+            <ListBox x:Name="lstMessages" SelectionChanged="lstMessages_SelectionChanged" Grid.Column="2" Grid.RowSpan="3" BorderThickness="0">
+                <!--<local:MessageView Content="Hello" MessageType="FromOthers"/>
+                <local:MessageView Content="Another Hello" MessageType="FromOthers"/>
+                <local:MessageView Content="show case Hello" MessageType="FromOthers"/>
+                <local:MessageView Content="Hi" MessageType="Sended"/>
+                <local:MessageView Content="Hi HI HI HI" MessageType="Sended"/>
+                <local:MessageView Content="Hi Hi" MessageType="Sended"/>
+                <local:MessageView Content="How Are You?" MessageType="FromOthers"/>
+                <local:MessageView Content="Another How Are You" MessageType="FromOthers"/>
+                <local:MessageView Content="How Are You How Are You" MessageType="FromOthers"/>
+                <local:MessageView Content="I`m Fine" MessageType="Sended"/>-->
+            </ListBox>
 
         </Grid>
 
