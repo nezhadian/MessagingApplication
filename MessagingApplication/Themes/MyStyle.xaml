@@ -20,6 +20,14 @@
     <SolidColorBrush x:Key="Window.Border">#bbb</SolidColorBrush>
     <SolidColorBrush x:Key="Window.Background">#fff</SolidColorBrush>
 
+    <SolidColorBrush x:Key="Textbox.Background">#fcfcfc</SolidColorBrush>
+    <SolidColorBrush x:Key="Textbox.BorderNormal">#e5e5e5</SolidColorBrush>
+    <SolidColorBrush x:Key="Textbox.TextColor">#333</SolidColorBrush>
+    <SolidColorBrush x:Key="Textbox.PlaceholderColor">gray</SolidColorBrush>
+    <SolidColorBrush x:Key="Textbox.Hover" Color="#FFF0F0F0"></SolidColorBrush>
+    <SolidColorBrush x:Key="Textbox.FocusedBorderColor">#09f</SolidColorBrush>
+
+
     <!--_______________________ Message View Style _______________________-->
     <Style TargetType="{x:Type local:MessageView}">
         <Setter Property="Padding" Value="10,7" />
@@ -148,6 +156,64 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!--_______________________ Textbox With Placeholder _______________________-->
+    <Style TargetType="local:MyStyleTextboxWithPlaceHolder">
+        <Setter Property="Background" Value="{DynamicResource Textbox.Background}" />
+        <Setter Property="Foreground" Value="{DynamicResource Messages.TextColor}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Textbox.BorderNormal}" />
+        <Setter Property="Placeholder" Value="test" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="MaxLines" Value="3" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:MyStyleTextboxWithPlaceHolder">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="17" Padding="15,10" Cursor="IBeam">
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost" 
+                                      HorizontalContentAlignment="Left"
+                                      VerticalContentAlignment="Center"
+                                      >
+                            </ScrollViewer>
+                            <TextBlock Text="{TemplateBinding Placeholder}" 
+                                       HorizontalAlignment="Left" 
+                                       VerticalAlignment="Center" 
+                                       Margin="3,0"
+                                       Foreground="{DynamicResource Textbox.PlaceholderColor}"
+                                       Visibility="Collapsed"
+                                       x:Name="placeholder"
+                                       />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <!--Placeholder show hide-->
+                        <Trigger Property="Text" Value="">
+                            <Setter Property="Visibility" Value="Visible" TargetName="placeholder"/>
+                        </Trigger>
+                        
+                        <!--mouse over (hover)-->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="true"/>
+                                <Condition Property="IsFocused" Value="false"/>
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.Setters>
+                                <Setter Property="Background" Value="{DynamicResource Textbox.Hover}" />
+                            </MultiTrigger.Setters>
+                        </MultiTrigger>
+                        
+                        <!--focused blue borders-->
+                        <Trigger Property="IsFocused" Value="true">
+                            <Setter Property="BorderBrush" Value="{DynamicResource Textbox.FocusedBorderColor}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
 
 
 </ResourceDictionary>
