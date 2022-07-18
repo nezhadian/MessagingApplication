@@ -1,12 +1,18 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:local="clr-namespace:MessagingApplication"
+                    xmlns:local="clr-namespace:MessagingApplication" xmlns:System="clr-namespace:System;assembly=System.Runtime"
                     x:Class="MessagingApplication.MyStyle"
                     >
 
+    <!--_______________________ Converter _______________________-->
+    <local:HalfHeightToCornerRadiusConverter x:Key="halfHeightConverter"/>
+
     <!--_______________________ Fonts _______________________-->
     <FontFamily x:Key="MaterialIcons">pack://application:,,,#Material Icons</FontFamily>
-    
+
+    <!--_______________________ Main Values _______________________-->
+    <System:Double x:Key="FontSize" >12</System:Double>
+
     <!--_______________________ Colors _______________________-->
     <SolidColorBrush x:Key="Messages.TextColor">#333</SolidColorBrush>
     <SolidColorBrush x:Key="Messages.ReceivedBack">WhiteSmoke</SolidColorBrush>
@@ -27,6 +33,13 @@
     <SolidColorBrush x:Key="Textbox.Hover" Color="#FFF0F0F0"></SolidColorBrush>
     <SolidColorBrush x:Key="Textbox.FocusedBorderColor">#09f</SolidColorBrush>
 
+    <SolidColorBrush x:Key="CTA.TextColor">#fff</SolidColorBrush>
+    <SolidColorBrush x:Key="CTA.Normal">#09f</SolidColorBrush>
+    <SolidColorBrush x:Key="CTA.Hover">#1af</SolidColorBrush>
+    <SolidColorBrush x:Key="CTA.Pressed">#08e</SolidColorBrush>
+
+
+
 
     <!--_______________________ Message View Style _______________________-->
     <Style TargetType="{x:Type local:MessageView}">
@@ -35,6 +48,7 @@
         <Setter Property="Foreground" Value="{DynamicResource Messages.TextColor}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="FontSize" Value="{StaticResource FontSize}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:MessageView}">
@@ -75,7 +89,6 @@
         </Style.Triggers>
     </Style>
 
-    
     <!--_______________________ Window Title Buttons Style _______________________-->
     <Style TargetType="Button" x:Key="WindowTitleButtonsStyle">
         <Setter Property="Background" Value="Transparent" />
@@ -158,7 +171,7 @@
     </Style>
 
     <!--_______________________ Textbox With Placeholder _______________________-->
-    <Style TargetType="local:MyStyleTextboxWithPlaceHolder">
+    <Style TargetType="local:TextboxWithPlaceHolder">
         <Setter Property="Background" Value="{DynamicResource Textbox.Background}" />
         <Setter Property="Foreground" Value="{DynamicResource Messages.TextColor}" />
         <Setter Property="BorderThickness" Value="1" />
@@ -167,10 +180,16 @@
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="MaxLines" Value="3" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FontSize" Value="{StaticResource FontSize}" />
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="local:MyStyleTextboxWithPlaceHolder">
-                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="17" Padding="15,10" Cursor="IBeam">
+                <ControlTemplate TargetType="local:TextboxWithPlaceHolder">
+                    <Border Background="{TemplateBinding Background}" 
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}" 
+                            CornerRadius="18"
+                            Padding="15,10" 
+                            Cursor="IBeam">
                         <Grid>
                             <ScrollViewer x:Name="PART_ContentHost" 
                                       HorizontalContentAlignment="Left"
@@ -213,7 +232,59 @@
             </Setter.Value>
         </Setter>
     </Style>
-    
+
+    <!--_______________________ Icon Text Button _______________________-->
+    <Style TargetType="local:IconTextButton">
+        <Setter Property="Background" Value="{DynamicResource CTA.Normal}" />
+        <Setter Property="Foreground" Value="{DynamicResource CTA.TextColor}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="20,10,15,10" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="IconName" Value="" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontSize" Value="{StaticResource FontSize}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:IconTextButton">
+                    <Border Padding="{TemplateBinding Padding}" 
+                            Background="{TemplateBinding Background}" 
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}" 
+                            CornerRadius="{Binding Converter={StaticResource halfHeightConverter},RelativeSource={RelativeSource Mode=TemplatedParent},Path=ActualHeight}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            <TextBlock 
+                                Grid.Column="1"
+                                Text="{TemplateBinding IconName}"
+                                FontFamily="{StaticResource MaterialIcons}"
+                                FontSize="17"
+                                VerticalAlignment="Center"
+                                Foreground="{TemplateBinding Foreground}"
+                                Margin="15,0,0,-1"
+                                x:Name="icon"
+                                />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IconName" Value="">
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="icon"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter Property="Background" Value="{DynamicResource CTA.Hover}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+                            <Setter Property="Background" Value="{DynamicResource CTA.Pressed}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
 
 </ResourceDictionary>

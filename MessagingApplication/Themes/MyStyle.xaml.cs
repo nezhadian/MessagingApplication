@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace MessagingApplication
 {
@@ -79,7 +81,7 @@ namespace MessagingApplication
 
     }
 
-    public class MyStyleTextboxWithPlaceHolder : TextBox
+    public class TextboxWithPlaceHolder : TextBox
     {
         public string Placeholder
         {
@@ -89,9 +91,39 @@ namespace MessagingApplication
 
         // Using a DependencyProperty as the backing store for Placeholder.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty PlaceholderProperty =
-            DependencyProperty.Register("Placeholder", typeof(string), typeof(MyStyleTextboxWithPlaceHolder), new PropertyMetadata(""));    
+            DependencyProperty.Register("Placeholder", typeof(string), typeof(TextboxWithPlaceHolder), new PropertyMetadata(""));    
 
 
+    }
+
+    public class IconTextButton : Button
+    {
+
+
+        public string IconName
+        {
+            get { return (string)GetValue(IconNameProperty); }
+            set { SetValue(IconNameProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for IconName.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IconNameProperty =
+            DependencyProperty.Register("IconName", typeof(string), typeof(IconTextButton), new PropertyMetadata(""));
+
+
+    }
+
+    public class HalfHeightToCornerRadiusConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return new CornerRadius((double)value / 2);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

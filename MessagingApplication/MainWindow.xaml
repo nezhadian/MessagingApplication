@@ -59,7 +59,9 @@
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
 
-                <local:MyStyleTextboxWithPlaceHolder Placeholder="Write Something" Text="hello" AcceptsReturn="True"/>
+                <local:TextboxWithPlaceHolder Placeholder="Write Something" Text="hello" AcceptsReturn="True"/>
+
+                <local:IconTextButton HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="Send" IconName="send" Margin="0,0,-1,1" Click="btnSend_Click"/>
             </Grid>
             
             <ListBox x:Name="lstMessages" SelectionChanged="lstMessages_SelectionChanged" Grid.Column="2" Grid.RowSpan="2" BorderThickness="0">
