@@ -9,6 +9,7 @@ using System.Threading;
 using System.Windows;
 using System.Xml.Serialization;
 using System.IO;
+using System.Windows.Media;
 
 namespace MessagingApplication
 {
@@ -191,6 +192,14 @@ namespace MessagingApplication
             }
 
             return "127.0.0.1";
+        }
+
+
+        public static SolidColorBrush GetRandomColor()
+        {
+            Random r = new Random();
+            return new SolidColorBrush(Color.FromRgb((byte)r.Next(1, 255),
+                     (byte)r.Next(1, 255), (byte)r.Next(1, 255)));
         }
     }
 

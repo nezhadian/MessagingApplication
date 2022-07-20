@@ -12,6 +12,8 @@
 
     <!--_______________________ Main Values _______________________-->
     <System:Double x:Key="FontSize" >12</System:Double>
+    <System:Double x:Key="MaxMessageViewWidth" >500</System:Double>
+    <System:Double x:Key="MessageCounterSize" >18</System:Double>
 
     <!--_______________________ Colors _______________________-->
     <SolidColorBrush x:Key="Messages.TextColor">#333</SolidColorBrush>
@@ -26,17 +28,41 @@
     <SolidColorBrush x:Key="Window.Border">#bbb</SolidColorBrush>
     <SolidColorBrush x:Key="Window.Background">#fff</SolidColorBrush>
 
-    <SolidColorBrush x:Key="Textbox.Background">#fcfcfc</SolidColorBrush>
-    <SolidColorBrush x:Key="Textbox.BorderNormal">#e5e5e5</SolidColorBrush>
+    <SolidColorBrush x:Key="Textbox.Background">#eee</SolidColorBrush>
+    <SolidColorBrush x:Key="Textbox.BorderNormal">#eee</SolidColorBrush>
     <SolidColorBrush x:Key="Textbox.TextColor">#333</SolidColorBrush>
     <SolidColorBrush x:Key="Textbox.PlaceholderColor">gray</SolidColorBrush>
-    <SolidColorBrush x:Key="Textbox.Hover" Color="#FFF0F0F0"></SolidColorBrush>
+    <SolidColorBrush x:Key="Textbox.Hover">#E9E9E9</SolidColorBrush>
     <SolidColorBrush x:Key="Textbox.FocusedBorderColor">#09f</SolidColorBrush>
 
     <SolidColorBrush x:Key="CTA.TextColor">#fff</SolidColorBrush>
-    <SolidColorBrush x:Key="CTA.Normal">#09f</SolidColorBrush>
+    <!--<SolidColorBrush x:Key="CTA.Normal">#09f</SolidColorBrush>-->
+    <LinearGradientBrush x:Key="CTA.Normal">
+        <LinearGradientBrush.GradientStops>
+            <GradientStop Color="#00B9FF" Offset="0"/>
+            <GradientStop Color="#006FFF" Offset="1"/>
+        </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
     <SolidColorBrush x:Key="CTA.Hover">#1af</SolidColorBrush>
     <SolidColorBrush x:Key="CTA.Pressed">#08e</SolidColorBrush>
+
+    <SolidColorBrush x:Key="UserListView.Normal">Transparent</SolidColorBrush>
+    <SolidColorBrush x:Key="UserListView.TextColor">#333</SolidColorBrush>
+    <!--<SolidColorBrush x:Key="UserListView.MessageCounter">Lime</SolidColorBrush>-->
+    <LinearGradientBrush x:Key="UserListView.MessageCounter">
+        <LinearGradientBrush.GradientStops>
+            <GradientStop Color="#00FF9F" Offset="0"/>
+            <GradientStop Color="#00CBFF" Offset="1"/>
+        </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
+    <!--<SolidColorBrush x:Key="UserListView.Hover">#efefef</SolidColorBrush>-->
+    <LinearGradientBrush x:Key="UserListView.Hover">
+        <LinearGradientBrush.GradientStops>
+            <GradientStop Color="#fff" Offset="0"/>
+            <GradientStop Color="#EFEFEF" Offset="1"/>
+        </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="UserListView.Selected">#ECECEC</SolidColorBrush>
 
 
 
@@ -49,6 +75,7 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="FontSize" Value="{StaticResource FontSize}" />
+        
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:MessageView}">
@@ -57,9 +84,17 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             Padding="{TemplateBinding Padding}"
                             CornerRadius="6"
+                            MaxWidth="{StaticResource MaxMessageViewWidth}"
                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                             BorderThickness="{TemplateBinding BorderThickness}">
-                            <ContentPresenter/>
+                            
+                            <TextBlock 
+                                FontSize="{TemplateBinding FontSize}"
+                                FontFamily="{TemplateBinding FontFamily}"
+                                Foreground="{TemplateBinding Foreground}"
+                                Text="{TemplateBinding Content}"
+                                TextWrapping="Wrap"
+                                />
 
                         </Border>
                     </Grid>
@@ -274,11 +309,82 @@
                         <Trigger Property="IconName" Value="">
                             <Setter Property="Visibility" Value="Collapsed" TargetName="icon"/>
                         </Trigger>
+                        <Trigger Property="Content" Value="">
+                            <Setter Property="Margin" Value="0" TargetName="icon"/>
+                        </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter Property="Background" Value="{DynamicResource CTA.Hover}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
                             <Setter Property="Background" Value="{DynamicResource CTA.Pressed}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--_______________________ User List View Item _______________________-->
+    <Style TargetType="local:UserListViewItem">
+        <Setter Property="Padding" Value="15,10,20,10" />
+        <Setter Property="Background" Value="{DynamicResource UserListView.Normal}" />
+        <Setter Property="Foreground" Value="{DynamicResource UserListView.TextColor}" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:UserListViewItem">
+                    <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
+                        <Grid MinHeight="40">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40" />
+                                <ColumnDefinition Width="15" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="5" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <ContentPresenter Content="{TemplateBinding ProfileContent}"/>
+
+                            <ContentPresenter Grid.Column="2" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+
+                            <Border x:Name="messageCounter" 
+                                    Grid.Column="5" 
+                                    Height="{StaticResource MessageCounterSize}" 
+                                    Background="{DynamicResource UserListView.MessageCounter}" 
+                                    Padding="6,0" 
+                                    CornerRadius="{Binding Converter={StaticResource halfHeightConverter},Path=ActualHeight,RelativeSource={RelativeSource Mode=Self}}">
+
+                                <TextBlock 
+                                    Text="{TemplateBinding MessagesCount}"
+                                    FontSize="{StaticResource FontSize}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Foreground="White"
+                                    />
+                            </Border>
+
+                        </Grid>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource UserListView.Hover}" />
+                        </Trigger>
+
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource UserListView.Selected}"/>
+                        </Trigger>
+
+                        <Trigger Property="MessagesCount" Value="0">
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="messageCounter" />
+                        </Trigger>
+
+                        <Trigger Property="MessagesCount" Value="">
+                            <Setter Property="Width" Value="{StaticResource MessageCounterSize}" TargetName="messageCounter" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
