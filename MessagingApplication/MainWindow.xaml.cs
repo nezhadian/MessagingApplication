@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Net;
+using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Net;
-using System.Collections.ObjectModel;
 
 namespace MessagingApplication
 {
@@ -22,10 +15,12 @@ namespace MessagingApplication
     /// </summary>
     public partial class MainWindow : MyStyleWindow
     {
-        MessageListener msgListener;
-        List<ClientData> clients = new List<ClientData>();
+        PacketReceiver msgListener;
+        List<UserData> users = new List<UserData>();
+        RSACryptoServiceProvider SelfRSA;
 
-        public ClientData SelectedClient => lstClients.SelectedIndex == -1 ? null : clients[lstClients.SelectedIndex];
+
+        public UserData SelectedUser => lstUsers.SelectedIndex == -1 ? null : users[lstUsers.SelectedIndex];
 
         public MainWindow()
         {
@@ -34,9 +29,10 @@ namespace MessagingApplication
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            msgListener = new MessageListener(0);
-            msgListener.OnMessageReceived += MsgListener_OnMessageReceived;
+            msgListener = new PacketReceiver(0);
+            msgListener.OnPacketReceived += MsgListener_OnMessageReceived;
             msgListener.OnPortChanged += MsgListener_OnPortChanged; ;
+            SelfRSA = new RSACryptoServiceProvider();
 
             txtMessage.TextChanged += txtMessage_TextChanged;
 
@@ -44,44 +40,73 @@ namespace MessagingApplication
         }
 
 
-        private void MsgListener_OnMessageReceived(MessageData message, IPEndPoint source)
+        private void MsgListener_OnMessageReceived(byte[] data, IPEndPoint source)
         {
-            Dispatcher.Invoke(delegate
+            Packet packet = PacketReceiver.ReadObject<Packet>(ref data);
+
+            if (packet != null)
             {
-                IPEndPoint client = IPEndPoint.Parse($"{source.Address}:{message.OpenedPort}");
+                IPEndPoint actualSource = IPEndPoint.Parse($"{source.Address}:{packet.OpenedPort}");
+                UserData findedUser = FindUser(actualSource) ?? AddNewUser(actualSource);
 
-                foreach (ClientData clientData in clients)
+                switch (packet.PacketType)
                 {
-                    if (clientData.TargerAddress.Equals(client))
-                    {
-                        clientData.MessageReceived(message, SelectedClient.TargerAddress.Equals(client));
-                        return;
-                    }
+                    case PacketTypes.Message:
+                        findedUser.MessageReceived(Encoding.Unicode.GetString(SelfRSA.Decrypt((byte[])packet.Content,false)),SelectedUser == findedUser);
+                        break;
+                    case PacketTypes.Handshake:
+                        findedUser.RSAProvider = new RSACryptoServiceProvider();
+                        findedUser.RSAProvider.FromXmlString((string)packet.Content);
+                        PacketSender.SendObject(new Packet()
+                        {
+                            PacketType = PacketTypes.Handshake,
+                            OpenedPort = msgListener.Port,
+                            Content = SelfRSA.ToXmlString(false)
+
+                        }, actualSource);
+                        break;
                 }
+            }
 
-                AddNewAddress(client.ToString()).MessageReceived(message, false);
-                
 
-            }, System.Windows.Threading.DispatcherPriority.Loaded);
         }
 
         private void btnSend_Click(object sender, RoutedEventArgs e)
         {
-            if(SelectedClient != null)
+            if (SelectedUser != null)
             {
-                SelectedClient.SendMessage(new MessageData()
+                if (SelectedUser.RSAProvider != null)
                 {
-                    Message = txtMessage.Text,
-                    OpenedPort = msgListener.Port
-                });
-                txtMessage.Text = "";
+                    PacketSender.SendObject(new Packet()
+                    {
+                        PacketType = PacketTypes.Message,
+                        OpenedPort = msgListener.Port,
+                        Content = SelectedUser.RSAProvider.Encrypt(Encoding.Unicode.GetBytes(txtMessage.Text), false)
+
+                    }, SelectedUser.TargerAddress); 
+
+                    SelectedUser.ReportMessageSended(txtMessage.Text);
+
+                    txtMessage.Text = "";
+                }
+                else
+                {
+                    PacketSender.SendObject(new Packet()
+                    {
+                        PacketType = PacketTypes.Handshake,
+                        OpenedPort = msgListener.Port,
+                        Content = SelfRSA.ToXmlString(false)
+
+                    }, SelectedUser.TargerAddress);
+                }
+
             }
 
         }
 
-        private ClientData AddNewAddress(string address)
+        private UserData AddNewUser(IPEndPoint address)
         {
-            ClientData client = new ClientData(IPEndPoint.Parse(address));
+            UserData client = new UserData(address);
             UserListViewItem item = new UserListViewItem()
             {
                 Content = client.TargerAddress,
@@ -89,10 +114,22 @@ namespace MessagingApplication
             };
             item.SetBinding(UserListViewItem.MessagesCountProperty, new Binding("NewMessagesCount") { Source = client });
             item.Tag = client;
-            lstClients.Items.Add(item);
-            clients.Add(client);
+            lstUsers.Items.Add(item);
+            users.Add(client);
             return client;
-            
+
+        }
+        public UserData FindUser(IPEndPoint address)
+        {
+            foreach (UserData user in users)
+            {
+                if (user.TargerAddress.Equals(address))
+                {
+                    return user;
+                }
+            }
+
+            return null;
         }
 
 
@@ -115,7 +152,7 @@ namespace MessagingApplication
             //{
             //    ChangeStatus("Incorrect Port");
             //}
-            
+
         }
 
         #endregion
@@ -123,10 +160,11 @@ namespace MessagingApplication
         #region UI
         private void MsgListener_OnPortChanged(int port)
         {
-            Dispatcher.Invoke(() => {
-                Title = utils.GetSelfIPAddress();
+            Dispatcher.Invoke(() =>
+            {
+                Title = Utilities.GetSelfIPAddress();
                 lblPort.Text = ":" + port;
-            },System.Windows.Threading.DispatcherPriority.Loaded);
+            }, System.Windows.Threading.DispatcherPriority.Loaded);
         }
         private void ChangeStatus(string status)
         {
@@ -149,22 +187,24 @@ namespace MessagingApplication
         {
             if (IPEndPoint.TryParse(txtNewAddress.Text, out IPEndPoint target))
             {
-                foreach (ClientData client in clients)
+
+                if (FindUser(target) != null)
                 {
-                    if (client.TargerAddress.Equals(client))
-                    {
-                        ChangeStatus("Address Already Exists");
-                        return;
-                    }
+                    ChangeStatus("User Already Exists");
+
                 }
-                AddNewAddress(txtNewAddress.Text);
-                txtNewAddress.Text = "";
-                ChangeStatus("Address Added");
+                else
+                {
+                    AddNewUser(target);
+                    txtNewAddress.Text = "";
+                    ChangeStatus("User Added");
+
+                }
             }
             else
             {
                 txtNewAddress.Focus();
-                ChangeStatus("Incorrect Address");
+                ChangeStatus("Incorrect User Address");
                 return;
             }
         }
@@ -187,24 +227,21 @@ namespace MessagingApplication
 
         #endregion
 
+
         private void lstClients_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(SelectedClient != null)
+            if (SelectedUser != null)
             {
-                lstMessages.SetBinding(ItemsControl.ItemsSourceProperty, new Binding() { Source = SelectedClient.Messages });
-                SelectedClient.NewMessagesCount = 0;
+                lstMessages.SetBinding(ItemsControl.ItemsSourceProperty, new Binding() { Source = SelectedUser.Messages });
+                SelectedUser.NewMessagesCount = 0;
             }
         }
 
-        public ClientData GetSelectedClient()
-        {
-            return lstClients.SelectedIndex == -1 ? null : clients[lstClients.SelectedIndex];
-        }
     }
 
     public class MyCommands
     {
-        public static readonly RoutedUICommand Resend= new RoutedUICommand
+        public static readonly RoutedUICommand Resend = new RoutedUICommand
             (
                 "Resend",
                 "Resend",

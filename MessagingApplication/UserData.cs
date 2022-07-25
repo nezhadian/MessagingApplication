@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,9 +13,8 @@ using System.Windows.Shapes;
 
 namespace MessagingApplication
 {
-    public class ClientData : DependencyObject
+    public class UserData : DependencyObject
     {
-        private MessageSender msgSender;
 
         public ObservableCollection<UIElement> Messages = new ObservableCollection<UIElement>();
 
@@ -28,29 +28,28 @@ namespace MessagingApplication
 
         // Using a DependencyProperty as the backing store for NewMessagesCount.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty NewMessagesCountProperty =
-            DependencyProperty.Register("NewMessagesCount", typeof(int), typeof(ClientData), new PropertyMetadata(0));
+            DependencyProperty.Register("NewMessagesCount", typeof(int), typeof(UserData), new PropertyMetadata(0));
 
         #endregion
 
-        public IPEndPoint TargerAddress => msgSender.TargetAddress;
+        public IPEndPoint TargerAddress { private set; get; }
 
         public object ProfileImageContent;
 
+        public RSACryptoServiceProvider RSAProvider;
 
 
-
-        public ClientData(IPEndPoint endPoint)
+        public UserData(IPEndPoint endPoint)
         {
-            msgSender = new MessageSender();
-            msgSender.TargetAddress = endPoint;
-            ProfileImageContent = new Ellipse() { Fill = utils.GetRandomColor() };
+            TargerAddress = endPoint;
+            ProfileImageContent = new Ellipse() { Fill = Utilities.GetRandomColor() };
         }
 
-        public void MessageReceived(MessageData data,bool isFocused = false)
+        public void MessageReceived(string message,bool isFocused = false)
         {
             Messages.Add(new MessageView()
             {
-                Content = data.Message,
+                Content = message,
                 MessageType = MessageView.MessageTypes.FromOthers
 
             });
@@ -59,25 +58,16 @@ namespace MessagingApplication
                 NewMessagesCount++;
         }
 
-        public void SendMessage(MessageData data)
+        public void ReportMessageSended(string message)
         {
-            try
+            Messages.Add(new MessageView()
             {
-                msgSender.SendMessage(data);
+                Content = message,
+                MessageType = MessageView.MessageTypes.Sended
 
-                Messages.Add(new MessageView()
-                {
-                    Content = data.Message,
-                    MessageType = MessageView.MessageTypes.Sended
-
-                });
-
-            }
-            catch (System.Net.Sockets.SocketException ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
+            });
         }
 
     }
+    
 }
