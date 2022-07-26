@@ -121,20 +121,6 @@ namespace MessagingApplication
 
         #region Static Methods
 
-        public static T ReadObject<T> (ref byte[] data)
-        {
-            XmlSerializer serializer = new XmlSerializer(typeof(T));
-            MemoryStream stream = new MemoryStream(data);
-
-            try
-            {
-                return (T)serializer.Deserialize(stream);
-            }
-            catch
-            {
-                return default(T);
-            }
-        }
 
         #endregion
 
@@ -145,12 +131,7 @@ namespace MessagingApplication
 
         public static void SendObject(object obj,IPEndPoint target)
         {
-            XmlSerializer serializer = new XmlSerializer(obj.GetType());
-            MemoryStream stream = new MemoryStream();
-
-            serializer.Serialize(stream, obj);
-
-            SendBytes(stream.ToArray(), target);
+            SendBytes(Utilities.ObjectToData(obj), target);
         }
 
         public static void SendString(string value, IPEndPoint target)
@@ -191,7 +172,7 @@ namespace MessagingApplication
 
     public enum PacketTypes
     {
-        Message,Handshake
+        Message,Handshake,AES
     }
     public class Packet
     {

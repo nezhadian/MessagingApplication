@@ -383,6 +383,10 @@
                             <Setter Property="Visibility" Value="Collapsed" TargetName="messageCounter" />
                         </Trigger>
 
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="Opacity" Value="0.7" />
+                        </Trigger>
+
                         <Trigger Property="MessagesCount" Value="">
                             <Setter Property="Width" Value="{StaticResource MessageCounterSize}" TargetName="messageCounter" />
                         </Trigger>

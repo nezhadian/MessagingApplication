@@ -42,28 +42,40 @@ namespace MessagingApplication
 
         private void MsgListener_OnMessageReceived(byte[] data, IPEndPoint source)
         {
-            Packet packet = PacketReceiver.ReadObject<Packet>(ref data);
+            Packet packet = Utilities.ReadObject<Packet>(ref data);
 
             if (packet != null)
             {
                 IPEndPoint actualSource = IPEndPoint.Parse($"{source.Address}:{packet.OpenedPort}");
-                UserData findedUser = FindUser(actualSource) ?? AddNewUser(actualSource);
+                UserData findedUser = FindUser(actualSource);
 
                 switch (packet.PacketType)
                 {
                     case PacketTypes.Message:
-                        findedUser.MessageReceived(Encoding.Unicode.GetString(SelfRSA.Decrypt((byte[])packet.Content,false)),SelectedUser == findedUser);
+                        findedUser.DecodeMessage((byte[])packet.Content,SelectedUser == findedUser);
                         break;
                     case PacketTypes.Handshake:
-                        findedUser.RSAProvider = new RSACryptoServiceProvider();
-                        findedUser.RSAProvider.FromXmlString((string)packet.Content);
-                        PacketSender.SendObject(new Packet()
+                        if(findedUser == null)
                         {
-                            PacketType = PacketTypes.Handshake,
-                            OpenedPort = msgListener.Port,
-                            Content = SelfRSA.ToXmlString(false)
+                            UserData newUser = new UserData(actualSource);
+                            newUser.ReadRSAPublicKey((string)packet.Content);
+                            newUser.SendRSAPublicKey(msgListener.Port);
+                            BindUser(newUser);
+                        }
+                        else
+                        {
+                            findedUser.ReadRSAPublicKey((string)packet.Content);
+                            findedUser.SendAESKey(msgListener.Port);
+                        }
+                        break;
 
-                        }, actualSource);
+                    case PacketTypes.AES:
+                        if (findedUser.AesProvider == null)
+                            findedUser.SendAESKey(msgListener.Port);
+                        findedUser.ReadAESKey((byte[])packet.Content);
+                        findedUser.CanChat = true;
+
+                        
                         break;
                 }
             }
@@ -75,49 +87,25 @@ namespace MessagingApplication
         {
             if (SelectedUser != null)
             {
-                if (SelectedUser.RSAProvider != null)
-                {
-                    PacketSender.SendObject(new Packet()
-                    {
-                        PacketType = PacketTypes.Message,
-                        OpenedPort = msgListener.Port,
-                        Content = SelectedUser.RSAProvider.Encrypt(Encoding.Unicode.GetBytes(txtMessage.Text), false)
-
-                    }, SelectedUser.TargerAddress); 
-
-                    SelectedUser.ReportMessageSended(txtMessage.Text);
-
-                    txtMessage.Text = "";
-                }
-                else
-                {
-                    PacketSender.SendObject(new Packet()
-                    {
-                        PacketType = PacketTypes.Handshake,
-                        OpenedPort = msgListener.Port,
-                        Content = SelfRSA.ToXmlString(false)
-
-                    }, SelectedUser.TargerAddress);
-                }
+                SelectedUser.SendMessage(txtMessage.Text, msgListener.Port);
+                txtMessage.Text = "";
 
             }
 
         }
 
-        private UserData AddNewUser(IPEndPoint address)
+        private void BindUser(UserData user)
         {
-            UserData client = new UserData(address);
             UserListViewItem item = new UserListViewItem()
             {
-                Content = client.TargerAddress,
-                ProfileContent = client.ProfileImageContent
+                Content = user.TargerAddress,
+                ProfileContent = user.ProfileImageContent
             };
-            item.SetBinding(UserListViewItem.MessagesCountProperty, new Binding("NewMessagesCount") { Source = client });
-            item.Tag = client;
+            item.SetBinding(UserListViewItem.MessagesCountProperty, new Binding("NewMessagesCount") { Source = user });
+            item.SetBinding(IsEnabledProperty, new Binding("CanChat") { Source = user });
+            item.Tag = user;
             lstUsers.Items.Add(item);
-            users.Add(client);
-            return client;
-
+            users.Add(user);
         }
         public UserData FindUser(IPEndPoint address)
         {
@@ -195,9 +183,13 @@ namespace MessagingApplication
                 }
                 else
                 {
-                    AddNewUser(target);
+                    UserData user = new UserData(target);
+                    BindUser(user);
+                    user.SendRSAPublicKey(msgListener.Port);
+
                     txtNewAddress.Text = "";
                     ChangeStatus("User Added");
+
 
                 }
             }
