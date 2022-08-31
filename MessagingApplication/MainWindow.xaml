@@ -10,6 +10,7 @@
         TitleBarHeight="30"
         Loaded="Window_Loaded"
         Closed="Window_Closed"
+        
         Title="MainWindow" Height="603" Width="800">
     <local:MyStyleWindow.CommandBindings>
         <CommandBinding Command="local:MyCommands.Resend" Executed="resendCommand_Executed" CanExecute="resendCommand_CanExecute"/>
@@ -35,7 +36,7 @@
             <ListBox x:Name="lstUsers" BorderThickness="0" SelectionChanged="lstClients_SelectionChanged">
             </ListBox>
 
-            <Grid Grid.Row="2" Margin="10,0,10,20">
+            <Grid Grid.Row="2" Margin="10" VerticalAlignment="Bottom">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
@@ -43,28 +44,34 @@
 
                 <local:TextboxWithPlaceHolder x:Name="txtNewAddress" Placeholder="IP End Point" Text=""/>
 
-                <local:IconTextButton HorizontalAlignment="Right" VerticalAlignment="Center" Content="" IconName="add" Padding="10" Click="AddClientAddress_Clicked"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5,0">
+                    <Button Style="{StaticResource IconButtonStyle}" x:Name="btnPaste" Content="&#xE14F;" FontSize="17" Foreground="Gray" Click="PasteCliboard_Clicked"/>
+                    <Button Style="{StaticResource IconButtonStyle}" Content="add" Click="AddClientAddress_Clicked"/>
+                </StackPanel>
                 
             </Grid>
 
-            <Grid Grid.Column="2" Grid.Row="2" Margin="10,0,10,20">
+            <Grid Grid.Column="2" Grid.Row="2" Margin="10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
 
-                <local:TextboxWithPlaceHolder x:Name="txtMessage" Placeholder="Write Something" Text="" AcceptsReturn="True" TextWrapping="Wrap"/>
+                <local:TextboxWithPlaceHolder x:Name="txtMessage" Placeholder="Write Something" Text="" AcceptsReturn="True" TextWrapping="Wrap" Visibility="Collapsed"/>
 
                 <local:IconTextButton x:Name="btnSend" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="Send" IconName="send" Padding="15,8,12,8" Margin="3,3" Click="btnSend_Click" Visibility="Collapsed"/>
             </Grid>
 
-            <ListBox x:Name="lstMessages" Grid.Column="2" Grid.RowSpan="2" BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Disabled" >
-                <ListBox.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="Resend" Command="local:MyCommands.Resend" />
-                    </ContextMenu>
-                </ListBox.ContextMenu>
-            </ListBox>
+            <ScrollViewer Grid.Column="2" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto" PanningRatio="1">
+                <ListBox x:Name="lstMessages" BorderThickness="0" Grid.Column="2" Grid.RowSpan="2">
+                    <ListBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Resend" Command="local:MyCommands.Resend" />
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
+                </ListBox>
+            </ScrollViewer>
+            
 
         </Grid>
 

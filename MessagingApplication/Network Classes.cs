@@ -119,10 +119,6 @@ namespace MessagingApplication
             return data[..count];
         }
 
-        #region Static Methods
-
-
-        #endregion
 
     }
 
@@ -148,25 +144,7 @@ namespace MessagingApplication
             client.Client.Send(data);
         }
 
-        static public byte[] Encrypt(byte[] data, RSAParameters key, bool OAEPadding = false)
-        {
-            byte[] encData;
-            try
-            {
-                using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
-                {
-                    rsa.ImportParameters(key);
-                    encData = rsa.Encrypt(data, OAEPadding);
-                    return encData;
-                }
-            }
-            catch (CryptographicException e)
-            {
-                Console.WriteLine(e.Message);
-                return null;
-            }
-
-        }
+        
 
     }
 

@@ -17,7 +17,6 @@ namespace MessagingApplication
     {
         PacketReceiver msgListener;
         List<UserData> users = new List<UserData>();
-        RSACryptoServiceProvider SelfRSA;
 
 
         public UserData SelectedUser => lstUsers.SelectedIndex == -1 ? null : users[lstUsers.SelectedIndex];
@@ -32,10 +31,9 @@ namespace MessagingApplication
             msgListener = new PacketReceiver(0);
             msgListener.OnPacketReceived += MsgListener_OnMessageReceived;
             msgListener.OnPortChanged += MsgListener_OnPortChanged; ;
-            SelfRSA = new RSACryptoServiceProvider();
 
             txtMessage.TextChanged += txtMessage_TextChanged;
-
+            
             ChangeStatus("Ready");
         }
 
@@ -161,7 +159,7 @@ namespace MessagingApplication
         private void lblCurrentAddress_MouseDown(object sender, MouseButtonEventArgs e)
         {
             Clipboard.SetText(Title + lblPort.Text);
-            ChangeStatus($"Address Copied : {Title + lblPort.Text}");
+            ChangeStatus($"Address Copied ");
         }
         private void Window_Closed(object sender, EventArgs e)
         {
@@ -201,6 +199,10 @@ namespace MessagingApplication
             }
         }
 
+        private void PasteCliboard_Clicked(object sender, RoutedEventArgs e)
+        {
+            txtNewAddress.Text = Clipboard.GetText();
+        }
         #endregion
 
         #region resend command
@@ -222,6 +224,8 @@ namespace MessagingApplication
 
         private void lstClients_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            txtMessage.Visibility = SelectedUser == null || !SelectedUser.CanChat ? Visibility.Collapsed : Visibility.Visible;
+
             if (SelectedUser != null)
             {
                 lstMessages.SetBinding(ItemsControl.ItemsSourceProperty, new Binding() { Source = SelectedUser.Messages });

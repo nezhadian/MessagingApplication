@@ -64,9 +64,12 @@
     </LinearGradientBrush>
     <SolidColorBrush x:Key="UserListView.Selected">#ECECEC</SolidColorBrush>
 
-
-
-
+    <SolidColorBrush x:Key="IconButton.Back">Transparent</SolidColorBrush>
+    <SolidColorBrush x:Key="IconButton.Icon">#09f</SolidColorBrush>
+    <SolidColorBrush x:Key="IconButton.Hover">Gainsboro</SolidColorBrush>
+    <SolidColorBrush x:Key="IconButton.Pressed">LightGray</SolidColorBrush>
+    
+    
     <!--_______________________ Message View Style _______________________-->
     <Style TargetType="{x:Type local:MessageView}">
         <Setter Property="Padding" Value="10,7" />
@@ -396,5 +399,41 @@
         </Setter>
     </Style>
 
+    <!--_______________________ Icon Button _______________________-->
+    <Style x:Key="IconButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource IconButton.Back}" />
+        <Setter Property="Foreground" Value="{DynamicResource IconButton.Icon}" />
+        <Setter Property="Padding" Value="5" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontFamily" Value="{StaticResource MaterialIcons}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    
+                    <Grid x:Name="sc">
+                        
+                        <Ellipse Fill="{TemplateBinding Background}" Width="{TemplateBinding ActualHeight}"/>
+
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter Property="Background" Value="{DynamicResource IconButton.Hover}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+
+                            <Setter Property="Background" Value="{DynamicResource IconButton.Pressed}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
 </ResourceDictionary>
